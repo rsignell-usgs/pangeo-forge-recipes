@@ -20,7 +20,7 @@ import xarray as xr
 import zarr
 
 from ..chunk_grid import ChunkGrid
-from ..executors.base import Pipeline, Stage
+from ..executors.base import Pipeline, Stage, StageAnnotationType
 from ..patterns import CombineOp, DimIndex, FilePattern, FileType, Index
 from ..reference import create_hdf5_reference, unstrip_protocol
 from ..storage import FSSpecTarget, MetadataTarget, file_opener
@@ -674,7 +674,12 @@ def xarray_zarr_recipe_compiler(recipe: XarrayZarrRecipe) -> Pipeline:
     stages = [
         Stage(name="cache_input", function=cache_input, mappable=list(recipe.iter_inputs())),
         Stage(name="prepare_target", function=prepare_target),
-        Stage(name="store_chunk", function=store_chunk, mappable=list(recipe.iter_chunks())),
+        Stage(
+            name="store_chunk",
+            function=store_chunk,
+            mappable=list(recipe.iter_chunks()),
+            annotations={StageAnnotationType.RETRIES: 3},
+        ),
         Stage(name="finalize_target", function=finalize_target),
     ]
     return Pipeline(stages=stages, config=recipe)

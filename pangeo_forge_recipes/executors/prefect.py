@@ -1,3 +1,4 @@
+from datetime import timedelta
 from typing import Any, Dict, List, Optional
 
 from prefect import Flow, task, unmapped
@@ -12,6 +13,7 @@ def annotations_to_task_kwargs(annotations: Optional[StageAnnotations]) -> Dict[
     for ann_type in annotations:
         if ann_type == StageAnnotationType.RETRIES:
             task_kwargs["max_retries"] = annotations[ann_type]
+            task_kwargs["retry_delay"] = timedelta(minutes=3)
         if ann_type == StageAnnotationType.CONCURRENCY:
             raise ValueError("Haven't figured out concurrency yet.")
     return task_kwargs
